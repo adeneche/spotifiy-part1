@@ -2,7 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="10dp">
+    android:padding="10dp" >
 
     <ImageView
         android:id="@+id/item_top10_thumbnail"
@@ -10,17 +10,18 @@
         android:layout_alignParentLeft="true" android:layout_alignParentTop="true" />
 
     <TextView
-        android:id="@+id/item_top10_track"
-        android:layout_width="match_parent" android:layout_height="match_parent"
-        android:layout_toRightOf="@id/item_top10_thumbnail" android:layout_marginLeft="10dp"
-        android:layout_centerVertical="true"
-        android:singleLine="true" android:ellipsize="end" />
-
-    <TextView
         android:id="@+id/item_top10_album"
         android:layout_width="match_parent" android:layout_height="match_parent"
         android:layout_toRightOf="@id/item_top10_thumbnail" android:layout_marginLeft="10dp"
-        android:layout_below="@id/item_top10_track"
-        android:singleLine="true" android:ellipsize="end" />
+        android:singleLine="true" android:ellipsize="end"
+        android:text="album name" />
+
+    <TextView
+        android:id="@+id/item_top10_track"
+        android:layout_width="match_parent" android:layout_height="match_parent"
+        android:layout_toRightOf="@id/item_top10_thumbnail" android:layout_marginLeft="10dp"
+        android:singleLine="true" android:ellipsize="end"
+        android:layout_below="@id/item_top10_album"
+        android:text="track name" />
 
 </RelativeLayout>
