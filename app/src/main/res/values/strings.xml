@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name" translatable="false">Spotify Streamer</string>
+    <string name="action_settings">Settings</string>
+    <string name="search_hint">Artist Name</string>
+    <string name="title_activity_top_ten">Top 10 Tracks</string>
+    <string name="hello_world">Wo-ho!</string>
+</resources>

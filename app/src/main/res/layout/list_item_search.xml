@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal" android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="?android:listPreferredItemHeight" >
+# make this a relativelayout to add padding
+    <ImageView
+        android:id="@+id/item_search_thumbnail"
+        android:layout_width="200px" android:layout_height="200px"
+        android:minHeight="?android:listPreferredItemHeight"
+        android:src="@drawable/no_image_available" />
+    <TextView
+        android:id="@+id/item_search_name"
+        android:layout_width="match_parent" android:layout_height="match_parent"
+        android:gravity="center_vertical"
+        android:singleLine="true" android:ellipsize="end" />
+
+</LinearLayout>
