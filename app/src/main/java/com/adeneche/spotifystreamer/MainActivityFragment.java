@@ -2,9 +2,9 @@ package com.adeneche.spotifystreamer;
 
 import android.content.Context;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -26,11 +26,13 @@ import java.util.List;
 
 import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyService;
-import kaaes.spotify.webapi.android.models.Artist;
 import kaaes.spotify.webapi.android.models.ArtistsPager;
-import kaaes.spotify.webapi.android.models.Pager;
+import retrofit.Callback;
+import retrofit.RetrofitError;
+import retrofit.client.Response;
 
 public class MainActivityFragment extends Fragment {
+    private final String LOG_TAG = MainActivityFragment.class.getSimpleName();
 
     private final String SAVE_KEY = "artists";
 
@@ -96,11 +98,34 @@ public class MainActivityFragment extends Fragment {
         return rootView;
     }
 
-    private void searchArtist(String artistName) {
+    private void searchArtist(final String artistName) {
         if (artistName == null || artistName.isEmpty()) {
             displayToast("Empty artist name!");
         } else {
-            new SearchArtistsTask().execute(artistName);
+            spotifyService.searchArtists(artistName, new Callback<ArtistsPager>() {
+                @Override
+                public void success(ArtistsPager artistsPager, Response response) {
+                    if (artistsPager.artists.total == 0) {
+                        displayToast("No artist found!");
+                    } else {
+                        final ArrayList<ArtistParcel> parcels =
+                                ArtistParcel.toParcelArrayList(artistsPager.artists.items);
+                        // update mSearchAdapter
+                        mSearchAdapter.clear();
+                        mSearchAdapter.addAll(parcels);
+                        // move to beginning of listview
+                        searchListView.smoothScrollToPosition(0);
+                        // store query results locally
+                        artists = parcels;
+                    }
+                }
+
+                @Override
+                public void failure(RetrofitError error) {
+                    Log.e(LOG_TAG, "error searching artist "+artistName, error);
+                    displayToast("Error accessing Spotify");
+                }
+            });
         }
     }
 
@@ -108,37 +133,6 @@ public class MainActivityFragment extends Fragment {
         final Context context = getActivity();
         final Toast toast = Toast.makeText(context, message, Toast.LENGTH_SHORT);
         toast.show();
-    }
-
-    private class SearchArtistsTask extends AsyncTask<String, Void, Pager<Artist>> {
-
-        @Override
-        protected void onPostExecute(Pager<Artist> artists) {
-            if (artists != null) {
-                final ArrayList<ArtistParcel> parcels = ArtistParcel.toParcelArrayList(artists.items);
-                // update mSearchAdapter
-                mSearchAdapter.clear();
-                mSearchAdapter.addAll(parcels);
-                // move to beginning of listview
-                searchListView.smoothScrollToPosition(0);
-                // store query results locally
-                MainActivityFragment.this.artists = parcels;
-            } else {
-                displayToast("No artist found!");
-            }
-        }
-
-        @Override
-        protected Pager<Artist> doInBackground(String... params) {
-            final String artist = params[0];
-            ArtistsPager results = spotifyService.searchArtists(artist);
-
-            if (results.artists.total == 0) {
-                return null;
-            }
-
-            return results.artists;
-        }
     }
 
     private class ArtistListAdapter extends ArrayAdapter<ArtistParcel> {
