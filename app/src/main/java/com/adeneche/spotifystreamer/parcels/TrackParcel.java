@@ -14,17 +14,20 @@ public class TrackParcel implements Parcelable {
     public final String albumName;
     public final String trackName;
     public final String thumbnailUrl;
+    public final String previewUrl;
 
     public TrackParcel(Track track) {
         albumName = track.album.name;
         trackName = track.name;
         thumbnailUrl = Utils.selectImage(track.album.images, 200).url;
+        previewUrl = track.preview_url;
     }
 
     private TrackParcel(Parcel source) {
         albumName = source.readString();
         trackName = source.readString();
         thumbnailUrl = source.readString();
+        previewUrl = source.readString();
     }
 
     @Override
@@ -37,6 +40,7 @@ public class TrackParcel implements Parcelable {
         dest.writeString(albumName);
         dest.writeString(trackName);
         dest.writeString(thumbnailUrl);
+        dest.writeString(previewUrl);
     }
 
     public static ArrayList<TrackParcel> toParcelArrayList(final List<Track> tracks) {

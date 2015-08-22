@@ -3,11 +3,14 @@ package com.adeneche.spotifystreamer;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -51,6 +54,18 @@ public class TopTenActivityFragment extends Fragment {
         super.onSaveInstanceState(outState);
     }
 
+    void showDialog(int position) {
+        FragmentManager fm = getFragmentManager();
+        FragmentTransaction ft = fm.beginTransaction();
+        Fragment prev = fm.findFragmentByTag("dialog");
+        if (prev != null) {
+            ft.remove(prev);
+        }
+        ft.addToBackStack(null);
+
+        PlayerDialog fragment = PlayerDialog.newInstance(tracks.get(position));
+        fragment.show(fm, "dialog");
+    }
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -58,6 +73,13 @@ public class TopTenActivityFragment extends Fragment {
 
         mTopTenAdapter = new TracksListAdapter(getActivity(), new ArrayList<TrackParcel>());
         final ListView listView = (ListView) rootView.findViewById(R.id.listview_topten);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                showDialog(position);
+            }
+        });
+
         listView.setAdapter(mTopTenAdapter);
 
         if (savedInstanceState == null || !savedInstanceState.containsKey(SAVE_KEY)) {
