@@ -63,7 +63,7 @@ public class TopTenActivityFragment extends Fragment {
         }
         ft.addToBackStack(null);
 
-        PlayerDialog fragment = PlayerDialog.newInstance(tracks.get(position));
+        PlayerDialog fragment = PlayerDialog.newInstance(tracks, position);
         fragment.show(fm, "dialog");
     }
     @Override

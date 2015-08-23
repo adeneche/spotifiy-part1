@@ -11,12 +11,14 @@ import kaaes.spotify.webapi.android.models.Track;
 
 public class TrackParcel implements Parcelable {
 
+    public final String artistName;
     public final String albumName;
     public final String trackName;
     public final String thumbnailUrl;
     public final String previewUrl;
 
     public TrackParcel(Track track) {
+        artistName = track.artists.get(0).name;
         albumName = track.album.name;
         trackName = track.name;
         thumbnailUrl = Utils.selectImage(track.album.images, 200).url;
@@ -24,6 +26,7 @@ public class TrackParcel implements Parcelable {
     }
 
     private TrackParcel(Parcel source) {
+        artistName = source.readString();
         albumName = source.readString();
         trackName = source.readString();
         thumbnailUrl = source.readString();
@@ -37,6 +40,7 @@ public class TrackParcel implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(artistName);
         dest.writeString(albumName);
         dest.writeString(trackName);
         dest.writeString(thumbnailUrl);
