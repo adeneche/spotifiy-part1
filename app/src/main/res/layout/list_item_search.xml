@@ -6,8 +6,8 @@
 
     <ImageView
         android:id="@+id/item_search_thumbnail"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
         android:layout_alignParentLeft="true" android:layout_alignParentTop="true"
         android:src="@drawable/no_image_available" />
 

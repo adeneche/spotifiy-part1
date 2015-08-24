@@ -73,6 +73,12 @@ public class PlaybackFragment extends DialogFragment {
     }
 
     @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setStyle(DialogFragment.STYLE_NO_TITLE, 0);
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.player_fragment, container, false);
 
@@ -197,7 +203,6 @@ public class PlaybackFragment extends DialogFragment {
     public void onPause() {
         super.onPause();
         if (mMediaPlayer != null) {
-            Log.i(LOG_TAG, "onPause");
             mMediaPlayer.release();
             mMediaPlayer = null;
             started = false;

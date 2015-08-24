@@ -13,8 +13,6 @@ public class TopTenActivity extends ActionBarActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Log.i(LOG_TAG, "onCreate");
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_top_ten);
         if (savedInstanceState == null) {

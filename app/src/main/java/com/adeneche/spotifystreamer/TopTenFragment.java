@@ -55,7 +55,6 @@ public class TopTenFragment extends Fragment {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         if (tracks != null && !tracks.isEmpty()) {
-            Log.i(LOG_TAG, "saving " + tracks.size() + " tracks");
             outState.putParcelableArrayList(SAVE_KEY, tracks);
         }
         super.onSaveInstanceState(outState);
@@ -77,7 +76,6 @@ public class TopTenFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        Log.i(LOG_TAG, "onCreateView");
         final View rootView = inflater.inflate(R.layout.fragment_top_ten, container, false);
 
         final ListView listView = (ListView) rootView.findViewById(R.id.listview_topten);

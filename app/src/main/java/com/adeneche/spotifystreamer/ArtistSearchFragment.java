@@ -53,7 +53,6 @@ public class ArtistSearchFragment extends Fragment {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         if (artists != null && !artists.isEmpty()) {
-            Log.i(LOG_TAG, "saving " + artists.size() + " artists");
             outState.putParcelableArrayList(SAVE_KEY, artists);
         }
         super.onSaveInstanceState(outState);
@@ -62,14 +61,11 @@ public class ArtistSearchFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        Log.i(LOG_TAG, "onCreateView [" + savedInstanceState + "]");
-
         // load saved artists, if any
         if (savedInstanceState == null || !savedInstanceState.containsKey(SAVE_KEY)) {
             artists = new ArrayList<>();
         } else {
             artists = savedInstanceState.getParcelableArrayList(SAVE_KEY);
-            Log.i(LOG_TAG, "Loaded " + artists.size() + " artists");
         }
 
         mSearchAdapter = new ArtistListAdapter(getActivity(), artists);

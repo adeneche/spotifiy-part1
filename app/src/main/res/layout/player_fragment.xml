@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
     android:gravity="center_horizontal"
-    android:padding="20dp">
+    android:padding="10dp" >
 
     <TextView
         android:id="@+id/player_artist"
@@ -18,8 +18,8 @@
         android:text="Album Name"/>
     <ImageView
         android:id="@+id/player_thumbnail"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
         android:src="@drawable/no_image_available" />
     <TextView
         android:id="@+id/player_track"
@@ -28,23 +28,33 @@
         android:text="Track Name"/>
     <SeekBar
         android:id="@+id/player_scrubbar"
-        android:layout_width="fill_parent"
+        android:layout_width="220dp"
         android:layout_height="wrap_content" />
     <LinearLayout
         android:orientation="horizontal"
-        android:layout_width="fill_parent"
+        android:layout_width="200dp"
         android:layout_height="wrap_content"
-        android:gravity="center">
+        android:gravity="center_horizontal">
         <ImageButton
             android:id="@+id/player_prev"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@android:drawable/ic_media_previous" />
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" >
+        </View>
         <ImageButton
             android:id="@+id/player_play"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@android:drawable/ic_media_play" />
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" >
+        </View>
         <ImageButton
             android:id="@+id/player_next"
             android:layout_width="wrap_content"
