@@ -29,8 +29,8 @@ import kaaes.spotify.webapi.android.models.ArtistsPager;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
 
-public class MainActivityFragment extends Fragment {
-    private final String LOG_TAG = MainActivityFragment.class.getSimpleName();
+public class ArtistSearchFragment extends Fragment {
+    private final String LOG_TAG = ArtistSearchFragment.class.getSimpleName();
 
     public interface Callback {
         void onItemSelected(final ArtistParcel artist);
@@ -45,7 +45,7 @@ public class MainActivityFragment extends Fragment {
 
     private ArrayList<ArtistParcel> artists;
 
-    public MainActivityFragment() {
+    public ArtistSearchFragment() {
         final SpotifyApi spotifyApi = new SpotifyApi();
         spotifyService = spotifyApi.getService();
     }

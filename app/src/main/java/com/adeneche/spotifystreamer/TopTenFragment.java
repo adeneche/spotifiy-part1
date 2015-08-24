@@ -38,7 +38,9 @@ public class TopTenFragment extends Fragment {
 
     private final String SAVE_KEY = "tracks";
 
-    final static String TOPTEN_ARTIST = "URI";
+    final static String TOPTEN_ARTIST = "ARTIST";
+
+    final static String PLAYER_TAG = "playerDialog";
 
     private ArrayList<TrackParcel> tracks;
 
@@ -52,23 +54,24 @@ public class TopTenFragment extends Fragment {
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        if (tracks != null && !tracks.isEmpty()) {
-            outState.putParcelableArrayList(SAVE_KEY, tracks);
-        }
+//        if (tracks != null && !tracks.isEmpty()) {
+//            Log.i(LOG_TAG, "saving " + tracks.size() + " tracks");
+//            outState.putParcelableArrayList(SAVE_KEY, tracks);
+//        }
         super.onSaveInstanceState(outState);
     }
 
     void showDialog(int position) {
         FragmentManager fm = getFragmentManager();
         FragmentTransaction ft = fm.beginTransaction();
-        Fragment prev = fm.findFragmentByTag("dialog");
+        Fragment prev = fm.findFragmentByTag(PLAYER_TAG);
         if (prev != null) {
             ft.remove(prev);
         }
         ft.addToBackStack(null);
 
-        PlayerDialog fragment = PlayerDialog.newInstance(tracks, position);
-        fragment.show(fm, "dialog");
+        PlaybackFragment fragment = PlaybackFragment.newInstance(tracks, position);
+        fragment.show(fm, PLAYER_TAG);
     }
 
     @Override
@@ -77,7 +80,6 @@ public class TopTenFragment extends Fragment {
         Log.i(LOG_TAG, "onCreateView");
         final View rootView = inflater.inflate(R.layout.fragment_top_ten, container, false);
 
-        mTopTenAdapter = new TracksListAdapter(getActivity(), new ArrayList<TrackParcel>());
         final ListView listView = (ListView) rootView.findViewById(R.id.listview_topten);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -86,39 +88,47 @@ public class TopTenFragment extends Fragment {
             }
         });
 
+        mTopTenAdapter = new TracksListAdapter(getActivity(), new ArrayList<TrackParcel>());
         listView.setAdapter(mTopTenAdapter);
 
-
-        final Bundle arguments = getArguments();
-        if (arguments != null) {
-
-        }
-
-        if (arguments != null && arguments.getParcelable(TOPTEN_ARTIST) != null) {
-            final ArtistParcel artist = arguments.getParcelable(TOPTEN_ARTIST);
-            searchArtist(artist.name, artist.id);
-        } else if (savedInstanceState != null && savedInstanceState.containsKey(SAVE_KEY)) {
-            tracks = savedInstanceState.getParcelableArrayList(SAVE_KEY);
-            mTopTenAdapter.addAll(tracks);
-        } else {
-            final Intent intent = getActivity().getIntent();
-            if (intent != null && intent.getExtras() != null) {
-                final Bundle extras = intent.getExtras();
-                searchArtist(extras.getString("name"), extras.getString("id"));
-            }
-        }
+        initList(savedInstanceState);
 
         return rootView;
     }
 
-    private void searchArtist(final String artistName, final String spotifyID) {
-        searchTrack(spotifyID);
-        ((ActionBarActivity) getActivity()).getSupportActionBar().setSubtitle(artistName);
+    private void initList(final Bundle savedInstanceState) {
+        // first check if we have any saved state
+        if (savedInstanceState != null && savedInstanceState.containsKey(SAVE_KEY)) {
+            tracks = savedInstanceState.getParcelableArrayList(SAVE_KEY);
+            mTopTenAdapter.addAll(tracks);
+            return;
+        }
+
+        // check if we have any passed arguments
+        final Bundle arguments = getArguments();
+        if (arguments != null && arguments.getParcelable(TOPTEN_ARTIST) != null) {
+            final ArtistParcel artist = arguments.getParcelable(TOPTEN_ARTIST);
+            searchArtist(artist);
+            return;
+        }
+
+        // finally, check if we have any parcelable passed with the intent
+        final Intent intent = getActivity().getIntent();
+        if (intent != null && intent.getExtras() != null) {
+            final Bundle extras = intent.getExtras();
+            final ArtistParcel artist = extras.getParcelable(TOPTEN_ARTIST);
+            searchArtist(artist);
+        }
+    }
+
+    private void searchArtist(final ArtistParcel artistParcel) {
+        searchTrack(artistParcel.id);
+        ((ActionBarActivity) getActivity()).getSupportActionBar().setSubtitle(artistParcel.name);
     }
 
     private void searchTrack(String spotifyID) {
         if (spotifyID == null || spotifyID.isEmpty()) {
-            displayToast("Empty Spotify ID!");
+            Log.w(LOG_TAG, "empty or null spotifyID, this shouldn't happen");
         } else {
             spotifyService.getArtistTopTrack(spotifyID,
                     Collections.<String, Object>singletonMap("country", "us"),

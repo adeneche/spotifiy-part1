@@ -2,14 +2,19 @@ package com.adeneche.spotifystreamer;
 
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
 
 public class TopTenActivity extends ActionBarActivity {
 
+    private final static String LOG_TAG = TopTenActivity.class.getSimpleName();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.i(LOG_TAG, "onCreate");
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_top_ten);
         if (savedInstanceState == null) {

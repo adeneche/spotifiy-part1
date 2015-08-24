@@ -17,8 +17,8 @@ import com.squareup.picasso.Picasso;
 import java.io.IOException;
 import java.util.ArrayList;
 
-public class PlayerDialog extends DialogFragment {
-    private static final String LOG_TAG = PlayerDialog.class.getSimpleName();
+public class PlaybackFragment extends DialogFragment {
+    private static final String LOG_TAG = PlaybackFragment.class.getSimpleName();
 
     private ArrayList<TrackParcel> mTracks;
     protected int mSelected;
@@ -30,8 +30,8 @@ public class PlayerDialog extends DialogFragment {
 
     private boolean started;
 
-    static PlayerDialog newInstance(final ArrayList<TrackParcel> tracks, final int selected) {
-        final PlayerDialog dialog = new PlayerDialog();
+    static PlaybackFragment newInstance(final ArrayList<TrackParcel> tracks, final int selected) {
+        final PlaybackFragment dialog = new PlaybackFragment();
         Bundle bundle = new Bundle();
         bundle.putParcelableArrayList("tracks", tracks);
         bundle.putInt("selected", selected);

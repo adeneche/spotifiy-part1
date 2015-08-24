@@ -10,32 +10,10 @@ import android.view.MenuItem;
 import com.adeneche.spotifystreamer.parcels.ArtistParcel;
 
 
-public class MainActivity extends ActionBarActivity implements MainActivityFragment.Callback {
+public class MainActivity extends ActionBarActivity implements ArtistSearchFragment.Callback {
 
     private final static String LOG_TAG = MainActivity.class.getSimpleName();
     private boolean mTwoPane;
-
-    @Override
-    public void onItemSelected(final ArtistParcel artist) {
-        Log.i(LOG_TAG, "Selected artist " + artist.name);
-        if (mTwoPane) {
-            Bundle args = new Bundle();
-            args.putParcelable(TopTenFragment.TOPTEN_ARTIST, artist);
-
-            TopTenFragment fragment = new TopTenFragment();
-            fragment.setArguments(args);
-
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.topten_detail_container, fragment)
-                    .commit();
-        } else {
-            Bundle extras = new Bundle();
-            extras.putString("name", artist.name);
-            extras.putString("id", artist.id);
-            Intent detailIntent = new Intent(this, TopTenActivity.class).putExtras(extras);
-            startActivity(detailIntent);
-        }
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,5 +51,26 @@ public class MainActivity extends ActionBarActivity implements MainActivityFragm
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onItemSelected(final ArtistParcel artist) {
+        Log.i(LOG_TAG, "Selected artist " + artist.name);
+        if (mTwoPane) {
+            Bundle args = new Bundle();
+            args.putParcelable(TopTenFragment.TOPTEN_ARTIST, artist);
+
+            TopTenFragment fragment = new TopTenFragment();
+            fragment.setArguments(args);
+
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.topten_detail_container, fragment)
+                    .commit();
+        } else {
+            Bundle extras = new Bundle();
+            extras.putParcelable(TopTenFragment.TOPTEN_ARTIST, artist);
+            Intent detailIntent = new Intent(this, TopTenActivity.class).putExtras(extras);
+            startActivity(detailIntent);
+        }
     }
 }

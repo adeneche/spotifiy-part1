@@ -9,7 +9,7 @@
     tools:context="com.adeneche.spotifystreamer.MainActivity">
 
     <fragment
-        android:name="com.adeneche.spotifystreamer.MainActivityFragment"
+        android:name="com.adeneche.spotifystreamer.ArtistSearchFragment"
         tools:layout="@layout/fragment_main"
         android:layout_width="0dp"
         android:layout_height="match_parent"
