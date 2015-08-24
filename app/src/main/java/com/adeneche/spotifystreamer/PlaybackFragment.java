@@ -20,58 +20,51 @@ import java.util.ArrayList;
 public class PlaybackFragment extends DialogFragment {
     private static final String LOG_TAG = PlaybackFragment.class.getSimpleName();
 
+    private final static String SAVE_TRACKS = "tracks";
+    private final static String SAVE_SELECTED = "selected";
     private ArrayList<TrackParcel> mTracks;
     protected int mSelected;
-
     private MediaPlayer mMediaPlayer;
+    private TrackHolder mHolder;
+    private boolean mStarted;
+
     private Handler mSeekHandler = new Handler();
-
-    private TrackHolder holder;
-
-    private boolean started;
 
     static PlaybackFragment newInstance(final ArrayList<TrackParcel> tracks, final int selected) {
         final PlaybackFragment dialog = new PlaybackFragment();
         Bundle bundle = new Bundle();
-        bundle.putParcelableArrayList("tracks", tracks);
-        bundle.putInt("selected", selected);
+        bundle.putParcelableArrayList(SAVE_TRACKS, tracks);
+        bundle.putInt(SAVE_SELECTED, selected);
         dialog.setArguments(bundle);
         return dialog;
     }
 
     private ArrayList<TrackParcel> getTracks() {
-        return (ArrayList<TrackParcel>) getArguments().get("tracks");
+        return (ArrayList<TrackParcel>) getArguments().get(SAVE_TRACKS);
     }
 
     private int getSelected() {
-        return getArguments().getInt("selected");
+        return getArguments().getInt(SAVE_SELECTED);
     }
 
     private void updateUI(TrackParcel track) {
 
         if (!track.thumbnailUrl.isEmpty()) {
             Picasso.with(getActivity()).load(track.thumbnailUrl)
-                    .resize(200, 200).centerCrop().into(holder.thumbnailImage);
+                    .resize(200, 200).centerCrop().into(mHolder.thumbnailImage);
         } else {
-            holder.thumbnailImage.setImageResource(R.drawable.no_image_available);
+            mHolder.thumbnailImage.setImageResource(R.drawable.no_image_available);
         }
 
-        holder.seekBar.setProgress(0);
+        mHolder.seekBar.setProgress(0);
 
-        holder.artistTxt.setText(track.artistName);
-        holder.albumText.setText(track.albumName);
-        holder.trackText.setText(track.trackName);
+        mHolder.artistTxt.setText(track.artistName);
+        mHolder.albumText.setText(track.albumName);
+        mHolder.trackText.setText(track.trackName);
 
-        if (!track.thumbnailUrl.isEmpty()) {
-            Picasso.with(getActivity()).load(track.thumbnailUrl)
-                    .resize(200, 200).centerCrop().into(holder.thumbnailImage);
-        } else {
-            holder.thumbnailImage.setImageResource(R.drawable.no_image_available);
-        }
-
-        holder.playBtn.setImageResource(android.R.drawable.ic_media_play);
-        holder.prevBtn.setAlpha(mSelected == 0 ? .35f : 1f );
-        holder.nextBtn.setAlpha(mSelected == mTracks.size() - 1 ? .35f : 1f );
+        mHolder.playBtn.setImageResource(android.R.drawable.ic_media_play);
+        mHolder.prevBtn.setAlpha(mSelected == 0 ? .35f : 1f);
+        mHolder.nextBtn.setAlpha(mSelected == mTracks.size() - 1 ? .35f : 1f );
     }
 
     @Override
@@ -87,12 +80,11 @@ public class PlaybackFragment extends DialogFragment {
         mTracks = getTracks();
         mSelected = getSelected();
 
-        holder = new TrackHolder(view);
-
-        holder.seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        mHolder = new TrackHolder(view);
+        mHolder.seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (fromUser && started) {
+                if (fromUser && mStarted) {
                     mMediaPlayer.seekTo(progress);
                 }
             }
@@ -106,14 +98,14 @@ public class PlaybackFragment extends DialogFragment {
             }
         });
 
-        holder.playBtn.setOnClickListener(new View.OnClickListener() {
+        mHolder.playBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 playMusic();
             }
         });
 
-        holder.prevBtn.setOnClickListener(new View.OnClickListener() {
+        mHolder.prevBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (mSelected > 0) {
@@ -123,7 +115,7 @@ public class PlaybackFragment extends DialogFragment {
             }
         });
 
-        holder.nextBtn.setOnClickListener(new View.OnClickListener() {
+        mHolder.nextBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (mSelected + 1 < mTracks.size()) {
@@ -139,13 +131,12 @@ public class PlaybackFragment extends DialogFragment {
     }
 
     private void playSelectedTrack() {
-        //TODO what happens if I select another track while current one is still preparing ?
         if (mMediaPlayer != null) {
             if (mMediaPlayer.isPlaying()) {
                 mMediaPlayer.stop();
             }
             mMediaPlayer.reset();
-            started = false;
+            mStarted = false;
         } else {
             mMediaPlayer = new MediaPlayer();
         }
@@ -157,12 +148,12 @@ public class PlaybackFragment extends DialogFragment {
         try {
             mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
             mMediaPlayer.setDataSource(track.previewUrl);
-            holder.playBtn.setAlpha(.35f);
+            mHolder.playBtn.setAlpha(.35f);
             mMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                 @Override
                 public void onPrepared(MediaPlayer mp) {
-                    holder.playBtn.setAlpha(1f);
-                    started = true;
+                    mHolder.playBtn.setAlpha(1f);
+                    mStarted = true;
                 }
             });
             mMediaPlayer.prepareAsync(); // might take long! (for buffering, etc)
@@ -173,16 +164,16 @@ public class PlaybackFragment extends DialogFragment {
     }
 
     private void playMusic() {
-        if (!started) {
+        if (!mStarted) {
             return;
         }
 
         if (mMediaPlayer.isPlaying()) {
             mMediaPlayer.pause();
-            holder.playBtn.setImageResource(android.R.drawable.ic_media_play);
+            mHolder.playBtn.setImageResource(android.R.drawable.ic_media_play);
         } else {
             mMediaPlayer.start();
-            holder.playBtn.setImageResource(android.R.drawable.ic_media_pause);
+            mHolder.playBtn.setImageResource(android.R.drawable.ic_media_pause);
             seekUpdate();
         }
     }
@@ -195,10 +186,10 @@ public class PlaybackFragment extends DialogFragment {
     };
 
     private void seekUpdate() {
-        if (started) {
+        if (mStarted) {
             final int pos = mMediaPlayer.getCurrentPosition();
-            holder.seekBar.setMax(mMediaPlayer.getDuration());
-            holder.seekBar.setProgress(pos);
+            mHolder.seekBar.setMax(mMediaPlayer.getDuration());
+            mHolder.seekBar.setProgress(pos);
             mSeekHandler.postDelayed(mSeekRunnable, 1000);
         }
     }
@@ -209,7 +200,7 @@ public class PlaybackFragment extends DialogFragment {
         if (mMediaPlayer != null) {
             mMediaPlayer.release();
             mMediaPlayer = null;
-            started = false;
+            mStarted = false;
         }
         dismissAllowingStateLoss();
     }

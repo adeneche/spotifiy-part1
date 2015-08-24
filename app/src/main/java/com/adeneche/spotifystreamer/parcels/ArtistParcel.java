@@ -3,6 +3,8 @@ package com.adeneche.spotifystreamer.parcels;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.adeneche.spotifystreamer.Utils;
+
 import java.util.ArrayList;
 import java.util.List;
 

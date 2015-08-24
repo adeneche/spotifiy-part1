@@ -1,4 +1,7 @@
-package com.adeneche.spotifystreamer.parcels;
+package com.adeneche.spotifystreamer;
+
+import android.content.Context;
+import android.widget.Toast;
 
 import java.util.List;
 
@@ -17,5 +20,10 @@ public class Utils {
             }
         }
         return closest;
+    }
+
+    public static void displayToast(final Context context, final String message) {
+        final Toast toast = Toast.makeText(context, message, Toast.LENGTH_SHORT);
+        toast.show();
     }
 }

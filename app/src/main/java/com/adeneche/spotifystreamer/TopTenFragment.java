@@ -16,7 +16,6 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.adeneche.spotifystreamer.parcels.ArtistParcel;
 import com.adeneche.spotifystreamer.parcels.TrackParcel;
@@ -38,20 +37,17 @@ public class TopTenFragment extends Fragment {
 
     private final String SAVE_TRACKS = "tracks";
     private final String SAVE_ARTIST = "artistName";
-
-    final static String ARGUMENT_ARTIST = "ARTIST";
-
-    final static String PLAYER_TAG = "playerDialog";
+    private final static String PLAYER_TAG = "playerDialog";
+    public final static String ARGUMENT_ARTIST = "ARTIST";
 
     private ArrayList<TrackParcel> mTracks;
     private String mArtistName;
-
     private TracksListAdapter mTopTenAdapter;
-    private final SpotifyService spotifyService;
+    private final SpotifyService mSpotifyService;
 
     public TopTenFragment() {
         final SpotifyApi spotifyApi = new SpotifyApi();
-        spotifyService = spotifyApi.getService();
+        mSpotifyService = spotifyApi.getService();
     }
 
     @Override
@@ -63,7 +59,7 @@ public class TopTenFragment extends Fragment {
         super.onSaveInstanceState(outState);
     }
 
-    void showDialog(int position) {
+    private void showPlaybackDialog(int position) {
         FragmentManager fm = getFragmentManager();
         FragmentTransaction ft = fm.beginTransaction();
         Fragment prev = fm.findFragmentByTag(PLAYER_TAG);
@@ -85,7 +81,7 @@ public class TopTenFragment extends Fragment {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                showDialog(position);
+                showPlaybackDialog(position);
             }
         });
 
@@ -113,7 +109,7 @@ public class TopTenFragment extends Fragment {
         if (arguments != null && arguments.getParcelable(ARGUMENT_ARTIST) != null) {
             final ArtistParcel artist = arguments.getParcelable(ARGUMENT_ARTIST);
             mArtistName = artist.name;
-            searchArtist(artist);
+            searchTrack(artist.id);
             return;
         }
 
@@ -123,25 +119,21 @@ public class TopTenFragment extends Fragment {
             final Bundle extras = intent.getExtras();
             final ArtistParcel artist = extras.getParcelable(ARGUMENT_ARTIST);
             mArtistName = artist.name;
-            searchArtist(artist);
+            searchTrack(artist.id);
         }
-    }
-
-    private void searchArtist(final ArtistParcel artistParcel) {
-        searchTrack(artistParcel.id);
     }
 
     private void searchTrack(String spotifyID) {
         if (spotifyID == null || spotifyID.isEmpty()) {
             Log.w(LOG_TAG, "empty or null spotifyID, this shouldn't happen");
         } else {
-            spotifyService.getArtistTopTrack(spotifyID,
+            mSpotifyService.getArtistTopTrack(spotifyID,
                     Collections.<String, Object>singletonMap("country", "us"),
                     new Callback<Tracks>() {
                         @Override
                         public void success(Tracks result, Response response) {
                             if (result.tracks.isEmpty()) {
-                                displayToast("No Tracks found!");
+                                Utils.displayToast(getActivity(), "No Tracks found!");
                             } else {
                                 final ArrayList<TrackParcel> parcels =
                                         TrackParcel.toParcelArrayList(result.tracks);
@@ -156,16 +148,10 @@ public class TopTenFragment extends Fragment {
                         @Override
                         public void failure(RetrofitError error) {
                             Log.e(LOG_TAG, "error accessing Spotify API!", error);
-                            displayToast("Error accessing Spotify API!");
+                            Utils.displayToast(getActivity(), "Error accessing Spotify API!");
                         }
                     });
         }
-    }
-
-    private void displayToast(final String message) {
-        final Context context = getActivity();
-        final Toast toast = Toast.makeText(context, message, Toast.LENGTH_SHORT);
-        toast.show();
     }
 
     private class TracksListAdapter extends ArrayAdapter<TrackParcel> {

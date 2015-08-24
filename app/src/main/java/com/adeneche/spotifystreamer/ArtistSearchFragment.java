@@ -15,7 +15,6 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.adeneche.spotifystreamer.parcels.ArtistParcel;
 import com.squareup.picasso.Picasso;
@@ -39,21 +38,19 @@ public class ArtistSearchFragment extends Fragment {
     private final String SAVE_KEY = "artists";
 
     private ArtistListAdapter mSearchAdapter;
-    private ListView searchListView;
-
-    private final SpotifyService spotifyService;
-
-    private ArrayList<ArtistParcel> artists;
+    private ListView mSearchListView;
+    private final SpotifyService mSpotifyService;
+    private ArrayList<ArtistParcel> mArtists;
 
     public ArtistSearchFragment() {
         final SpotifyApi spotifyApi = new SpotifyApi();
-        spotifyService = spotifyApi.getService();
+        mSpotifyService = spotifyApi.getService();
     }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        if (artists != null && !artists.isEmpty()) {
-            outState.putParcelableArrayList(SAVE_KEY, artists);
+        if (mArtists != null && !mArtists.isEmpty()) {
+            outState.putParcelableArrayList(SAVE_KEY, mArtists);
         }
         super.onSaveInstanceState(outState);
     }
@@ -61,24 +58,23 @@ public class ArtistSearchFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // load saved artists, if any
+        // load saved mArtists, if any
         if (savedInstanceState == null || !savedInstanceState.containsKey(SAVE_KEY)) {
-            artists = new ArrayList<>();
+            mArtists = new ArrayList<>();
         } else {
-            artists = savedInstanceState.getParcelableArrayList(SAVE_KEY);
+            mArtists = savedInstanceState.getParcelableArrayList(SAVE_KEY);
         }
 
-        mSearchAdapter = new ArtistListAdapter(getActivity(), artists);
+        mSearchAdapter = new ArtistListAdapter(getActivity(), mArtists);
 
         final View rootView =  inflater.inflate(R.layout.fragment_main, container, false);
-        searchListView = (ListView) rootView.findViewById(R.id.listview_search);
-        searchListView.setAdapter(mSearchAdapter);
-
-        searchListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        mSearchListView = (ListView) rootView.findViewById(R.id.listview_search);
+        mSearchListView.setAdapter(mSearchAdapter);
+        mSearchListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 final ArtistParcel parcel = mSearchAdapter.getItem(position);
-                ((Callback)getActivity()).onItemSelected(parcel);
+                ((Callback) getActivity()).onItemSelected(parcel);
             }
         });
 
@@ -98,13 +94,13 @@ public class ArtistSearchFragment extends Fragment {
 
     private void searchArtist(final String artistName) {
         if (artistName == null || artistName.isEmpty()) {
-            displayToast("Empty artist name!");
+            Utils.displayToast(getActivity(), "Empty artist name!");
         } else {
-            spotifyService.searchArtists(artistName, new retrofit.Callback<ArtistsPager>() {
+            mSpotifyService.searchArtists(artistName, new retrofit.Callback<ArtistsPager>() {
                 @Override
                 public void success(ArtistsPager artistsPager, Response response) {
                     if (artistsPager.artists.total == 0) {
-                        displayToast("No artist found!");
+                        Utils.displayToast(getActivity(), "No artist found!");
                     } else {
                         final ArrayList<ArtistParcel> parcels =
                                 ArtistParcel.toParcelArrayList(artistsPager.artists.items);
@@ -112,25 +108,19 @@ public class ArtistSearchFragment extends Fragment {
                         mSearchAdapter.clear();
                         mSearchAdapter.addAll(parcels);
                         // move to beginning of listview
-                        searchListView.smoothScrollToPosition(0);
+                        mSearchListView.smoothScrollToPosition(0);
                         // store query results locally
-                        artists = parcels;
+                        mArtists = parcels;
                     }
                 }
 
                 @Override
                 public void failure(RetrofitError error) {
-                    Log.e(LOG_TAG, "error searching artist "+artistName, error);
-                    displayToast("Error accessing Spotify");
+                    Log.e(LOG_TAG, "error searching artist " + artistName, error);
+                    Utils.displayToast(getActivity(), "Error accessing Spotify");
                 }
             });
         }
-    }
-
-    private void displayToast(final String message) {
-        final Context context = getActivity();
-        final Toast toast = Toast.makeText(context, message, Toast.LENGTH_SHORT);
-        toast.show();
     }
 
     private class ArtistListAdapter extends ArrayAdapter<ArtistParcel> {
