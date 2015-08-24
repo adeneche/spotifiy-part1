@@ -1,17 +1,56 @@
 package com.adeneche.spotifystreamer;
 
-import android.support.v7.app.ActionBarActivity;
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.adeneche.spotifystreamer.parcels.ArtistParcel;
 
-public class MainActivity extends ActionBarActivity {
+
+public class MainActivity extends ActionBarActivity implements MainActivityFragment.Callback {
+
+    private final static String LOG_TAG = MainActivity.class.getSimpleName();
+    private boolean mTwoPane;
+
+    @Override
+    public void onItemSelected(final ArtistParcel artist) {
+        Log.i(LOG_TAG, "Selected artist " + artist.name);
+        if (mTwoPane) {
+            Bundle args = new Bundle();
+            args.putParcelable(TopTenFragment.TOPTEN_ARTIST, artist);
+
+            TopTenFragment fragment = new TopTenFragment();
+            fragment.setArguments(args);
+
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.topten_detail_container, fragment)
+                    .commit();
+        } else {
+            Bundle extras = new Bundle();
+            extras.putString("name", artist.name);
+            extras.putString("id", artist.id);
+            Intent detailIntent = new Intent(this, TopTenActivity.class).putExtras(extras);
+            startActivity(detailIntent);
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        if (findViewById(R.id.topten_detail_container) != null) {
+            mTwoPane = true;
+            if (savedInstanceState == null) {
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.topten_detail_container, new TopTenFragment())
+                        .commit();
+            }
+        } else {
+            mTwoPane = false;
+        }
     }
 
     @Override

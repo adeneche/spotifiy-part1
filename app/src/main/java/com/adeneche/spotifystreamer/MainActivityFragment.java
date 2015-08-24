@@ -1,7 +1,6 @@
 package com.adeneche.spotifystreamer;
 
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -27,12 +26,15 @@ import java.util.List;
 import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.ArtistsPager;
-import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
 
 public class MainActivityFragment extends Fragment {
     private final String LOG_TAG = MainActivityFragment.class.getSimpleName();
+
+    public interface Callback {
+        void onItemSelected(final ArtistParcel artist);
+    }
 
     private final String SAVE_KEY = "artists";
 
@@ -51,6 +53,7 @@ public class MainActivityFragment extends Fragment {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         if (artists != null && !artists.isEmpty()) {
+            Log.i(LOG_TAG, "saving " + artists.size() + " artists");
             outState.putParcelableArrayList(SAVE_KEY, artists);
         }
         super.onSaveInstanceState(outState);
@@ -64,6 +67,7 @@ public class MainActivityFragment extends Fragment {
             artists = new ArrayList<>();
         } else {
             artists = savedInstanceState.getParcelableArrayList(SAVE_KEY);
+            Log.i(LOG_TAG, "Loaded " + artists.size() + " artists");
         }
 
         mSearchAdapter = new ArtistListAdapter(getActivity(), artists);
@@ -76,11 +80,7 @@ public class MainActivityFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 final ArtistParcel parcel = mSearchAdapter.getItem(position);
-                Bundle extras = new Bundle();
-                extras.putString("name", parcel.name);
-                extras.putString("id", parcel.id);
-                Intent detailIntent = new Intent(getActivity(), TopTenActivity.class).putExtras(extras);
-                startActivity(detailIntent);
+                ((Callback)getActivity()).onItemSelected(parcel);
             }
         });
 
@@ -102,7 +102,7 @@ public class MainActivityFragment extends Fragment {
         if (artistName == null || artistName.isEmpty()) {
             displayToast("Empty artist name!");
         } else {
-            spotifyService.searchArtists(artistName, new Callback<ArtistsPager>() {
+            spotifyService.searchArtists(artistName, new retrofit.Callback<ArtistsPager>() {
                 @Override
                 public void success(ArtistsPager artistsPager, Response response) {
                     if (artistsPager.artists.total == 0) {

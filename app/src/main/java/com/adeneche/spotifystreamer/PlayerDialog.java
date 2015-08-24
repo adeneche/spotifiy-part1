@@ -194,12 +194,14 @@ public class PlayerDialog extends DialogFragment {
     }
 
     @Override
-    public void onStop() {
+    public void onPause() {
+        super.onPause();
         if (mMediaPlayer != null) {
+            Log.i(LOG_TAG, "onPause");
             mMediaPlayer.release();
             mMediaPlayer = null;
             started = false;
         }
-        super.onStop();
+        dismissAllowingStateLoss();
     }
 }

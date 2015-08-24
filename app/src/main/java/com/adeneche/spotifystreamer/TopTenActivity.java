@@ -12,6 +12,11 @@ public class TopTenActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_top_ten);
+        if (savedInstanceState == null) {
+            getSupportFragmentManager().beginTransaction()
+                    .add(R.id.topten_detail_container, new TopTenFragment())
+                    .commit();
+        }
     }
 
 

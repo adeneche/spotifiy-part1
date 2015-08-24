@@ -1,6 +1,7 @@
 package com.adeneche.spotifystreamer;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -17,6 +18,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.adeneche.spotifystreamer.parcels.ArtistParcel;
 import com.adeneche.spotifystreamer.parcels.TrackParcel;
 import com.squareup.picasso.Picasso;
 
@@ -31,17 +33,19 @@ import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
 
-public class TopTenActivityFragment extends Fragment {
-    private final String LOG_TAG = TopTenActivityFragment.class.getSimpleName();
+public class TopTenFragment extends Fragment {
+    private final String LOG_TAG = TopTenFragment.class.getSimpleName();
 
     private final String SAVE_KEY = "tracks";
+
+    final static String TOPTEN_ARTIST = "URI";
 
     private ArrayList<TrackParcel> tracks;
 
     private TracksListAdapter mTopTenAdapter;
     private final SpotifyService spotifyService;
 
-    public TopTenActivityFragment() {
+    public TopTenFragment() {
         final SpotifyApi spotifyApi = new SpotifyApi();
         spotifyService = spotifyApi.getService();
     }
@@ -66,9 +70,11 @@ public class TopTenActivityFragment extends Fragment {
         PlayerDialog fragment = PlayerDialog.newInstance(tracks, position);
         fragment.show(fm, "dialog");
     }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        Log.i(LOG_TAG, "onCreateView");
         final View rootView = inflater.inflate(R.layout.fragment_top_ten, container, false);
 
         mTopTenAdapter = new TracksListAdapter(getActivity(), new ArrayList<TrackParcel>());
@@ -82,20 +88,32 @@ public class TopTenActivityFragment extends Fragment {
 
         listView.setAdapter(mTopTenAdapter);
 
-        if (savedInstanceState == null || !savedInstanceState.containsKey(SAVE_KEY)) {
-            final Bundle extras = getActivity().getIntent().getExtras();
 
-            final String spotifyID = extras.getString("id");
-            searchTrack(spotifyID);
+        final Bundle arguments = getArguments();
+        if (arguments != null) {
 
-            final String artistName = extras.getString("name");
-            ((ActionBarActivity) getActivity()).getSupportActionBar().setSubtitle(artistName);
-        } else {
+        }
+
+        if (arguments != null && arguments.getParcelable(TOPTEN_ARTIST) != null) {
+            final ArtistParcel artist = arguments.getParcelable(TOPTEN_ARTIST);
+            searchArtist(artist.name, artist.id);
+        } else if (savedInstanceState != null && savedInstanceState.containsKey(SAVE_KEY)) {
             tracks = savedInstanceState.getParcelableArrayList(SAVE_KEY);
             mTopTenAdapter.addAll(tracks);
+        } else {
+            final Intent intent = getActivity().getIntent();
+            if (intent != null && intent.getExtras() != null) {
+                final Bundle extras = intent.getExtras();
+                searchArtist(extras.getString("name"), extras.getString("id"));
+            }
         }
 
         return rootView;
+    }
+
+    private void searchArtist(final String artistName, final String spotifyID) {
+        searchTrack(spotifyID);
+        ((ActionBarActivity) getActivity()).getSupportActionBar().setSubtitle(artistName);
     }
 
     private void searchTrack(String spotifyID) {
