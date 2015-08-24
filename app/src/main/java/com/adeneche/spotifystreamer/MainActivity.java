@@ -17,6 +17,8 @@ public class MainActivity extends ActionBarActivity implements ArtistSearchFragm
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.i(LOG_TAG, "onCreate [" + savedInstanceState + "]");
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         if (findViewById(R.id.topten_detail_container) != null) {

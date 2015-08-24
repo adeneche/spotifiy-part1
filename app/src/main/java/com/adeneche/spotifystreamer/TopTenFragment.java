@@ -54,10 +54,10 @@ public class TopTenFragment extends Fragment {
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-//        if (tracks != null && !tracks.isEmpty()) {
-//            Log.i(LOG_TAG, "saving " + tracks.size() + " tracks");
-//            outState.putParcelableArrayList(SAVE_KEY, tracks);
-//        }
+        if (tracks != null && !tracks.isEmpty()) {
+            Log.i(LOG_TAG, "saving " + tracks.size() + " tracks");
+            outState.putParcelableArrayList(SAVE_KEY, tracks);
+        }
         super.onSaveInstanceState(outState);
     }
 

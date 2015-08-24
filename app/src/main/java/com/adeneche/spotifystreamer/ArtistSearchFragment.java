@@ -62,6 +62,8 @@ public class ArtistSearchFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        Log.i(LOG_TAG, "onCreateView [" + savedInstanceState + "]");
+
         // load saved artists, if any
         if (savedInstanceState == null || !savedInstanceState.containsKey(SAVE_KEY)) {
             artists = new ArrayList<>();
