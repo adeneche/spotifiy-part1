@@ -36,13 +36,15 @@ import retrofit.client.Response;
 public class TopTenFragment extends Fragment {
     private final String LOG_TAG = TopTenFragment.class.getSimpleName();
 
-    private final String SAVE_KEY = "tracks";
+    private final String SAVE_TRACKS = "tracks";
+    private final String SAVE_ARTIST = "artistName";
 
-    final static String TOPTEN_ARTIST = "ARTIST";
+    final static String ARGUMENT_ARTIST = "ARTIST";
 
     final static String PLAYER_TAG = "playerDialog";
 
-    private ArrayList<TrackParcel> tracks;
+    private ArrayList<TrackParcel> mTracks;
+    private String mArtistName;
 
     private TracksListAdapter mTopTenAdapter;
     private final SpotifyService spotifyService;
@@ -54,8 +56,9 @@ public class TopTenFragment extends Fragment {
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        if (tracks != null && !tracks.isEmpty()) {
-            outState.putParcelableArrayList(SAVE_KEY, tracks);
+        if (mTracks != null && !mTracks.isEmpty()) {
+            outState.putParcelableArrayList(SAVE_TRACKS, mTracks);
+            outState.putString(SAVE_ARTIST, mArtistName);
         }
         super.onSaveInstanceState(outState);
     }
@@ -69,7 +72,7 @@ public class TopTenFragment extends Fragment {
         }
         ft.addToBackStack(null);
 
-        PlaybackFragment fragment = PlaybackFragment.newInstance(tracks, position);
+        PlaybackFragment fragment = PlaybackFragment.newInstance(mTracks, position);
         fragment.show(fm, PLAYER_TAG);
     }
 
@@ -91,21 +94,25 @@ public class TopTenFragment extends Fragment {
 
         initList(savedInstanceState);
 
+        ((ActionBarActivity) getActivity()).getSupportActionBar().setSubtitle(mArtistName);
+
         return rootView;
     }
 
     private void initList(final Bundle savedInstanceState) {
         // first check if we have any saved state
-        if (savedInstanceState != null && savedInstanceState.containsKey(SAVE_KEY)) {
-            tracks = savedInstanceState.getParcelableArrayList(SAVE_KEY);
-            mTopTenAdapter.addAll(tracks);
+        if (savedInstanceState != null && savedInstanceState.containsKey(SAVE_TRACKS)) {
+            mTracks = savedInstanceState.getParcelableArrayList(SAVE_TRACKS);
+            mArtistName = savedInstanceState.getString(SAVE_ARTIST);
+            mTopTenAdapter.addAll(mTracks);
             return;
         }
 
         // check if we have any passed arguments
         final Bundle arguments = getArguments();
-        if (arguments != null && arguments.getParcelable(TOPTEN_ARTIST) != null) {
-            final ArtistParcel artist = arguments.getParcelable(TOPTEN_ARTIST);
+        if (arguments != null && arguments.getParcelable(ARGUMENT_ARTIST) != null) {
+            final ArtistParcel artist = arguments.getParcelable(ARGUMENT_ARTIST);
+            mArtistName = artist.name;
             searchArtist(artist);
             return;
         }
@@ -114,14 +121,14 @@ public class TopTenFragment extends Fragment {
         final Intent intent = getActivity().getIntent();
         if (intent != null && intent.getExtras() != null) {
             final Bundle extras = intent.getExtras();
-            final ArtistParcel artist = extras.getParcelable(TOPTEN_ARTIST);
+            final ArtistParcel artist = extras.getParcelable(ARGUMENT_ARTIST);
+            mArtistName = artist.name;
             searchArtist(artist);
         }
     }
 
     private void searchArtist(final ArtistParcel artistParcel) {
         searchTrack(artistParcel.id);
-        ((ActionBarActivity) getActivity()).getSupportActionBar().setSubtitle(artistParcel.name);
     }
 
     private void searchTrack(String spotifyID) {
@@ -142,7 +149,7 @@ public class TopTenFragment extends Fragment {
                                 mTopTenAdapter.clear();
                                 mTopTenAdapter.addAll(parcels);
                                 // store results locally
-                                tracks = parcels;
+                                mTracks = parcels;
                             }
                         }
 

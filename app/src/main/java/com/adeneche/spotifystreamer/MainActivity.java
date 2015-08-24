@@ -58,7 +58,7 @@ public class MainActivity extends ActionBarActivity implements ArtistSearchFragm
         Log.i(LOG_TAG, "Selected artist " + artist.name);
         if (mTwoPane) {
             Bundle args = new Bundle();
-            args.putParcelable(TopTenFragment.TOPTEN_ARTIST, artist);
+            args.putParcelable(TopTenFragment.ARGUMENT_ARTIST, artist);
 
             TopTenFragment fragment = new TopTenFragment();
             fragment.setArguments(args);
@@ -68,7 +68,7 @@ public class MainActivity extends ActionBarActivity implements ArtistSearchFragm
                     .commit();
         } else {
             Bundle extras = new Bundle();
-            extras.putParcelable(TopTenFragment.TOPTEN_ARTIST, artist);
+            extras.putParcelable(TopTenFragment.ARGUMENT_ARTIST, artist);
             Intent detailIntent = new Intent(this, TopTenActivity.class).putExtras(extras);
             startActivity(detailIntent);
         }
