@@ -70,6 +70,8 @@ public class PlaybackFragment extends DialogFragment {
         }
 
         holder.playBtn.setImageResource(android.R.drawable.ic_media_play);
+        holder.prevBtn.setAlpha(mSelected == 0 ? .35f : 1f );
+        holder.nextBtn.setAlpha(mSelected == mTracks.size() - 1 ? .35f : 1f );
     }
 
     @Override
@@ -155,9 +157,11 @@ public class PlaybackFragment extends DialogFragment {
         try {
             mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
             mMediaPlayer.setDataSource(track.previewUrl);
+            holder.playBtn.setAlpha(.35f);
             mMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                 @Override
                 public void onPrepared(MediaPlayer mp) {
+                    holder.playBtn.setAlpha(1f);
                     started = true;
                 }
             });
