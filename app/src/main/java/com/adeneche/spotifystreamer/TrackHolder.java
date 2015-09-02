@@ -15,7 +15,9 @@ public class TrackHolder {
     public final ImageButton prevBtn;
     public final ImageButton playBtn;
     public final ImageButton nextBtn;
-    
+    public final TextView elapsedText;
+    public final TextView durationText;
+
     public TrackHolder(final View view) {
         artistTxt = (TextView) view.findViewById(R.id.player_artist);
         albumText = (TextView) view.findViewById(R.id.player_album);
@@ -25,5 +27,7 @@ public class TrackHolder {
         prevBtn = (ImageButton) view.findViewById(R.id.player_prev);
         playBtn = (ImageButton) view.findViewById(R.id.player_play);
         nextBtn = (ImageButton) view.findViewById(R.id.player_next);
+        elapsedText = (TextView) view.findViewById(R.id.player_elapsed);
+        durationText = (TextView) view.findViewById(R.id.player_duration);
     }
 }
