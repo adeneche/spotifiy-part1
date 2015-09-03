@@ -4,6 +4,7 @@ import android.app.Application;
 import android.app.Dialog;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.media.MediaPlayer;
@@ -11,6 +12,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.app.DialogFragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,7 +23,8 @@ import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
-public class PlaybackFragment extends DialogFragment implements PlayerService.OnPreparedCallback {
+public class PlaybackFragment extends DialogFragment implements PlayerService.OnPreparedCallback,
+        MediaPlayer.OnCompletionListener {
     private static final String LOG_TAG = PlaybackFragment.class.getSimpleName();
 
     private final static String ARG_TRACKS = "tracks";
@@ -35,22 +38,24 @@ public class PlaybackFragment extends DialogFragment implements PlayerService.On
     private PlayerService mPlayerService;
     private Intent mPlayIntent;
     private boolean mPlayerBound;
-    private boolean mPlaying;
 
     private ServiceConnection mPlayerConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
+            Log.i(LOG_TAG, "onServiceConnected");
             PlayerService.PlayerBinder binder = (PlayerService.PlayerBinder) service;
             // get service
             mPlayerService = binder.getService();
             mPlayerService.setOnPreparedCallback(PlaybackFragment.this);
+            mPlayerService.setOnCompletionListener(PlaybackFragment.this);
             mPlayerBound = true;
             // start playing selected song
-            playSelectedTrack();
+            playSelectedTrack(true);
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
+            Log.i(LOG_TAG, "onServiceDisconnected");
             mPlayerBound = false;
         }
     };
@@ -95,30 +100,15 @@ public class PlaybackFragment extends DialogFragment implements PlayerService.On
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        Log.i(LOG_TAG, "onCreate");
         super.onCreate(savedInstanceState);
         setStyle(DialogFragment.STYLE_NO_TITLE, 0);
         setRetainInstance(true);
     }
 
     @Override
-    public void onStart() {
-        super.onStart();
-        if (mPlayIntent == null) {
-            final Application application = getActivity().getApplication();
-            mPlayIntent = new Intent(application, PlayerService.class);
-            application.bindService(mPlayIntent, mPlayerConnection, Context.BIND_AUTO_CREATE);
-            application.startService(mPlayIntent);
-        }
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        outState.putInt(ARG_SELECTED, mSelected);
-        super.onSaveInstanceState(outState);
-    }
-
-    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        Log.i(LOG_TAG, "onCreateView");
         final View view = inflater.inflate(R.layout.player_fragment, container, false);
 
         mTracks = getTracks();
@@ -154,7 +144,7 @@ public class PlaybackFragment extends DialogFragment implements PlayerService.On
             public void onClick(View v) {
                 if (mSelected > 0) {
                     mSelected--;
-                    playSelectedTrack();
+                    playSelectedTrack(false);
                 }
             }
         });
@@ -164,36 +154,55 @@ public class PlaybackFragment extends DialogFragment implements PlayerService.On
             public void onClick(View v) {
                 if (mSelected + 1 < mTracks.size()) {
                     mSelected++;
-                    playSelectedTrack();
+                    playSelectedTrack(false);
                 }
             }
         });
 
         if (savedInstanceState != null) {
             mSelected = savedInstanceState.getInt(ARG_SELECTED);
-            playSelectedTrack();
+            playSelectedTrack(true);
         }
         return view;
     }
 
     @Override
+    public void onStart() {
+        Log.i(LOG_TAG, "onStart");
+        super.onStart();
+        if (mPlayIntent == null) {
+            final Application application = getActivity().getApplication();
+            mPlayIntent = new Intent(application, PlayerService.class);
+            application.bindService(mPlayIntent, mPlayerConnection, Context.BIND_AUTO_CREATE);
+            application.startService(mPlayIntent);
+        }
+    }
+
+    @Override
     public void OnPrepared() {
+        Log.i(LOG_TAG, "onPrepared");
         int duration = mPlayerService.getPlayer().getDuration() / 1000;
         mHolder.elapsedText.setText(String.format("%d:%02d", duration / 60, duration % 60));
 
         mHolder.playBtn.setImageResource(android.R.drawable.ic_media_pause);
         mHolder.playBtn.setAlpha(1f);
-        mPlaying = true;
         seekUpdate();
     }
 
-    private void playSelectedTrack() {
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putInt(ARG_SELECTED, mSelected);
+        super.onSaveInstanceState(outState);
+    }
+
+    private void playSelectedTrack(boolean autoPlay) {
         final TrackParcel track = mTracks.get(mSelected);
         updateUI(track);
 
-        mPlayerService.playSong(track.previewUrl);
-        mPlaying = false;
         mHolder.playBtn.setAlpha(.35f);
+        if (!mPlayerService.playSong(track.previewUrl, autoPlay)) {
+            mHolder.playBtn.setAlpha(1f);
+        }
     }
 
     private void playMusic() {
@@ -212,6 +221,11 @@ public class PlaybackFragment extends DialogFragment implements PlayerService.On
         }
     }
 
+    @Override
+    public void onCompletion(MediaPlayer mp) {
+        mHolder.playBtn.setImageResource(android.R.drawable.ic_media_play);
+    }
+
     private final Runnable mSeekRunnable = new Runnable() {
         @Override
         public void run() {
@@ -220,7 +234,7 @@ public class PlaybackFragment extends DialogFragment implements PlayerService.On
     };
 
     private void seekUpdate() {
-        if (!mPlayerBound || !mPlaying) {
+        if (!mPlayerBound || !mPlayerService.isPlaying()) {
             return;
         }
 
@@ -234,12 +248,28 @@ public class PlaybackFragment extends DialogFragment implements PlayerService.On
     }
 
     @Override
+    public void onPause() {
+        Log.i(LOG_TAG, "onPause");
+        super.onPause();
+    }
+
+    @Override
     public void onDestroyView() {
+        Log.i(LOG_TAG, "onDestroyView");
         Dialog dialog = getDialog();
         // Work around bug: http://code.google.com/p/android/issues/detail?id=17423
         if (dialog != null && getRetainInstance()) {
             dialog.setDismissMessage(null);
         }
         super.onDestroyView();
+    }
+
+    @Override
+    public void onDismiss(DialogInterface dialog) {
+        Log.i(LOG_TAG, "onDismiss");
+        if (mPlayerBound && mPlayerService.isPlaying()) {
+            mPlayerService.stopSong();
+        }
+        super.onDismiss(dialog);
     }
 }

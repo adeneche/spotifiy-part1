@@ -23,9 +23,10 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
 
     public static final String URL_KEY = "url";
 
+    private boolean mPrepared;
     private MediaPlayer mPlayer;
     private final IBinder mPlayBinder = new PlayerBinder();
-    private String currentTrack;
+    private String mCurrentTrack;
 
     private OnPreparedCallback onPreparedCallback;
 
@@ -33,6 +34,14 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
         onPreparedCallback = callback;
     }
 
+    public void setOnCompletionListener(MediaPlayer.OnCompletionListener listener) {
+        mPlayer.setOnCompletionListener(listener);
+    }
+
+    public boolean isPlaying() {
+        return mPrepared && mPlayer.isPlaying();
+    }
+    
     @Override
     public void onCreate() {
         // create the service
@@ -50,17 +59,24 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
         mPlayer.setOnCompletionListener(this);
     }
 
-    public void playSong(String previewUrl) {
-        if (mPlayer.isPlaying() && currentTrack != null && currentTrack.equals(previewUrl)) {
-            Log.i("PlayerService", "track already playing");
-            // keep playing the same track
-            if (onPreparedCallback != null) {
-                onPreparedCallback.OnPrepared();
+    public boolean playSong(String previewUrl, boolean autoPlay) {
+        if (mCurrentTrack != null && mCurrentTrack.equals(previewUrl)) {
+            if (autoPlay) {
+                // do not autoplay a song we just finished playing, this call was most likely caused
+                // by a screen rotation
+                return false;
+            } else if (isPlaying()) {
+                Log.i("PlayerService", "track already playing");
+                // keep playing the same track
+                if (onPreparedCallback != null) {
+                    onPreparedCallback.OnPrepared();
+                }
+                return true;
             }
-            return;
         }
 
-        currentTrack = previewUrl;
+        mCurrentTrack = previewUrl;
+        mPrepared = false;
 
         // play a song
         mPlayer.reset();
@@ -70,11 +86,13 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
             Log.e(LOG_TAG, "Error setting data source", e);
         }
         mPlayer.prepareAsync();
+        return true;
     }
 
     public void stopSong() {
         if (mPlayer.isPlaying()) {
             mPlayer.stop();
+            mCurrentTrack = null;
         }
     }
 
@@ -110,6 +128,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
     @Override
     public void onPrepared(MediaPlayer mp) {
         // start playback
+        mPrepared = true;
         mPlayer.start();
 
         if (onPreparedCallback != null) {
