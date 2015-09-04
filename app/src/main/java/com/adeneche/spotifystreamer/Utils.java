@@ -26,4 +26,8 @@ public class Utils {
         final Toast toast = Toast.makeText(context, message, Toast.LENGTH_SHORT);
         toast.show();
     }
+
+    public static String formatTime(int sec) {
+        return String.format("%d:%02d", sec / 60, sec % 60);
+    }
 }

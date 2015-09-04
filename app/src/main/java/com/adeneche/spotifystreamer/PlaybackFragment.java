@@ -88,10 +88,16 @@ public class PlaybackFragment extends DialogFragment implements PlayerService.On
         }
 
         mHolder.seekBar.setProgress(0);
+        mHolder.seekBar.setMax(100);
 
         mHolder.artistTxt.setText(track.artistName);
         mHolder.albumText.setText(track.albumName);
         mHolder.trackText.setText(track.trackName);
+
+        if (!mPlayerBound) {
+            mHolder.elapsedText.setText("");
+            mHolder.durationText.setText("");
+        }
 
         mHolder.playBtn.setImageResource(android.R.drawable.ic_media_play);
         mHolder.prevBtn.setAlpha(mSelected == 0 ? .35f : 1f);
@@ -162,7 +168,12 @@ public class PlaybackFragment extends DialogFragment implements PlayerService.On
         if (savedInstanceState != null) {
             mSelected = savedInstanceState.getInt(ARG_SELECTED);
             playSelectedTrack(true);
+        } else {
+            // make sure we update the UI
+            final TrackParcel track = mTracks.get(mSelected);
+            updateUI(track);
         }
+
         return view;
     }
 
@@ -181,8 +192,9 @@ public class PlaybackFragment extends DialogFragment implements PlayerService.On
     @Override
     public void OnPrepared() {
         Log.i(LOG_TAG, "onPrepared");
-        int duration = mPlayerService.getPlayer().getDuration() / 1000;
-        mHolder.elapsedText.setText(String.format("%d:%02d", duration / 60, duration % 60));
+        final MediaPlayer player = mPlayerService.getPlayer();
+        mHolder.durationText.setText(Utils.formatTime(player.getDuration() / 1000));
+        mHolder.elapsedText.setText(Utils.formatTime(player.getCurrentPosition() / 1000));
 
         mHolder.playBtn.setImageResource(android.R.drawable.ic_media_pause);
         mHolder.playBtn.setAlpha(1f);
@@ -234,17 +246,15 @@ public class PlaybackFragment extends DialogFragment implements PlayerService.On
     };
 
     private void seekUpdate() {
-        if (!mPlayerBound || !mPlayerService.isPlaying()) {
-            return;
-        }
+        if (mPlayerBound && mPlayerService.isPlaying()) {
+            final MediaPlayer player = mPlayerService.getPlayer();
+            int pos = player.getCurrentPosition();
+            mHolder.seekBar.setMax(player.getDuration());
+            mHolder.seekBar.setProgress(pos);
+            mHolder.elapsedText.setText(Utils.formatTime(pos / 1000));
 
-        final MediaPlayer player = mPlayerService.getPlayer();
-        int pos = player.getCurrentPosition();
-        mHolder.seekBar.setMax(player.getDuration());
-        mHolder.seekBar.setProgress(pos);
-        pos /= 1000;
-        mHolder.elapsedText.setText(String.format("%d:%02d", pos / 60, pos % 60));
-        mSeekHandler.postDelayed(mSeekRunnable, 100);
+            mSeekHandler.postDelayed(mSeekRunnable, 100);
+        }
     }
 
     @Override
