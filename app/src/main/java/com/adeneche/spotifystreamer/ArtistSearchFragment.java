@@ -3,15 +3,13 @@ package com.adeneche.spotifystreamer;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.SearchView;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -78,17 +76,20 @@ public class ArtistSearchFragment extends Fragment {
             }
         });
 
-        final EditText editText = (EditText) rootView.findViewById(R.id.edittext_artist);
-        editText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_ACTION_DONE) {
-                    searchArtist(editText.getText().toString());
-                }
-                return false; // return false to allow keyboard to close (default handling)
-            }
-        });
-
+        final SearchView searchView = (SearchView) rootView.findViewById(R.id.search_artist);
+        searchView.setOnQueryTextListener(
+                new SearchView.OnQueryTextListener() {
+                    @Override
+                    public boolean onQueryTextSubmit(String query) {
+                        searchArtist(query);
+                        searchView.clearFocus();
+                        return true;
+                    }
+                    @Override
+                    public boolean onQueryTextChange(String newText) {
+                        return false;
+                    }
+                });
         return rootView;
     }
 

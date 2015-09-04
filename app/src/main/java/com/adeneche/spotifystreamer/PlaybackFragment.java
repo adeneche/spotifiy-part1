@@ -89,16 +89,16 @@ public class PlaybackFragment extends DialogFragment implements PlayerService.On
         }
 
         mHolder.seekBar.setProgress(0);
-        mHolder.seekBar.setMax(100);
+        mHolder.seekBar.setMax(30_000);
 
         mHolder.artistTxt.setText(track.artistName);
         mHolder.albumText.setText(track.albumName);
         mHolder.trackText.setText(track.trackName);
 
         if (!mPlayerBound) {
-            mHolder.elapsedText.setText("");
-            mHolder.durationText.setText("");
+            mHolder.elapsedText.setText(Utils.formatTime(0));
         }
+        mHolder.durationText.setText(Utils.formatTime(30));
 
         mHolder.playBtn.setImageResource(android.R.drawable.ic_media_play);
         mHolder.prevBtn.setAlpha(mSelected == 0 ? .35f : 1f);
@@ -196,7 +196,7 @@ public class PlaybackFragment extends DialogFragment implements PlayerService.On
         Log.i(LOG_TAG, "onPrepared");
         final MediaPlayer player = mPlayerService.getPlayer();
 
-        mHolder.durationText.setText(Utils.formatTime(player.getDuration() / 1000));
+        mHolder.durationText.setText(Utils.formatTime(30)); // all previews are 30 seconds
         mHolder.elapsedText.setText(Utils.formatTime(player.getCurrentPosition() / 1000));
 
         if (player.isPlaying()) {
@@ -255,7 +255,6 @@ public class PlaybackFragment extends DialogFragment implements PlayerService.On
         if (mPlayerBound && mPlayerService.isPlaying()) {
             final MediaPlayer player = mPlayerService.getPlayer();
             int pos = player.getCurrentPosition();
-            mHolder.seekBar.setMax(player.getDuration());
             mHolder.seekBar.setProgress(pos);
             mHolder.elapsedText.setText(Utils.formatTime(pos / 1000));
 
