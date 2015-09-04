@@ -78,7 +78,8 @@ public class PlaybackFragment extends DialogFragment implements PlayerService.On
         return getArguments().getInt(ARG_SELECTED);
     }
 
-    private void updateUI(TrackParcel track) {
+    private void updateUI() {
+        final TrackParcel track = mTracks.get(mSelected);
 
         if (!track.thumbnailUrl.isEmpty()) {
             Picasso.with(getActivity()).load(track.thumbnailUrl)
@@ -150,6 +151,7 @@ public class PlaybackFragment extends DialogFragment implements PlayerService.On
             public void onClick(View v) {
                 if (mSelected > 0) {
                     mSelected--;
+                    updateUI();
                     playSelectedTrack(false);
                 }
             }
@@ -160,18 +162,18 @@ public class PlaybackFragment extends DialogFragment implements PlayerService.On
             public void onClick(View v) {
                 if (mSelected + 1 < mTracks.size()) {
                     mSelected++;
+                    updateUI();
                     playSelectedTrack(false);
                 }
             }
         });
 
+        updateUI();
+
         if (savedInstanceState != null) {
             mSelected = savedInstanceState.getInt(ARG_SELECTED);
+            updateUI();
             playSelectedTrack(true);
-        } else {
-            // make sure we update the UI
-            final TrackParcel track = mTracks.get(mSelected);
-            updateUI(track);
         }
 
         return view;
@@ -193,10 +195,15 @@ public class PlaybackFragment extends DialogFragment implements PlayerService.On
     public void OnPrepared() {
         Log.i(LOG_TAG, "onPrepared");
         final MediaPlayer player = mPlayerService.getPlayer();
+
         mHolder.durationText.setText(Utils.formatTime(player.getDuration() / 1000));
         mHolder.elapsedText.setText(Utils.formatTime(player.getCurrentPosition() / 1000));
 
-        mHolder.playBtn.setImageResource(android.R.drawable.ic_media_pause);
+        if (player.isPlaying()) {
+            mHolder.playBtn.setImageResource(android.R.drawable.ic_media_pause);
+        } else {
+            mHolder.playBtn.setImageResource(android.R.drawable.ic_media_play);
+        }
         mHolder.playBtn.setAlpha(1f);
         seekUpdate();
     }
@@ -209,7 +216,6 @@ public class PlaybackFragment extends DialogFragment implements PlayerService.On
 
     private void playSelectedTrack(boolean autoPlay) {
         final TrackParcel track = mTracks.get(mSelected);
-        updateUI(track);
 
         mHolder.playBtn.setAlpha(.35f);
         if (!mPlayerService.playSong(track.previewUrl, autoPlay)) {
